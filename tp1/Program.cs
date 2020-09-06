@@ -13,32 +13,32 @@ namespace tp1
         {
             const int maxDepth = 7;
             const int minDepth = 1;
-            const int popSize = 100;
-            const uint maxGenerations = 1000;
+            const int popSize = 250;
+            const uint maxGenerations = 250;
             const uint elitism = 5;
-            const uint tournamentSize = 10;
+            const uint tournamentSize = 50;
             const float growTerminalChance = .5f;
-            const float pCrossover = .9f;
-            const float pMutation = .05f;
+            const float pCrossover = .3f;
+            const float pMutation = .5f;
 
             string[] terminals = new string[] { "1", "0.5" };
-            string[] functions = new string[] { "add", "mul", "sub", "div" };
+            string[] functions = new string[] { "add", "mul", "sub", "div", "pow" };
 
             List<Tuple<List<float>, float>> Data = new List<Tuple<List<float>, float>>();
-            using (StreamReader sr = new StreamReader("SR_circle.txt"))
+            using (StreamReader sr = new StreamReader("concrete.txt"))
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    var strData = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    var strData = line.Replace("\t","").Split(' ', StringSplitOptions.RemoveEmptyEntries);
                     List<float> inputs = new List<float>();
                     for (int i = 0; i < strData.Length - 1; i++)
                     {
                         terminals = terminals.Append("x" + i).ToArray();
-                        inputs.Add(float.Parse(strData[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture));
+                        inputs.Add(float.Parse(strData[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture));
                     }
                     Data.Add(new Tuple<List<float>, float>(inputs,
-                        (float.Parse(strData[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture))));
+                        (float.Parse(strData[strData.Length - 1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -47,7 +47,7 @@ namespace tp1
             {
                 for (int j = 0; j < Data[0].Item1.Count; j++)
                 {
-                    plt.PlotPoint(Data[i].Item1[j], Data[i].Item2, Color.Red);
+                    plt.PlotPoint(Data[i].Item1[j], Data[i].Item2, Color.Red, label: "Original Data");
                 }
             }
 
@@ -70,9 +70,10 @@ namespace tp1
 
             for (int i = 0; i < Data.Count; i++)
             {
-                plt.Add(plt.PlotPoint(Data[i].Item1[0], op.Compute(Data[i].Item1.Select(d => (double)d).ToArray()), Color.Blue));
+                for (int j = 0; j < Data[0].Item1.Count; j++)
+                    plt.Add(plt.PlotPoint(Data[i].Item1[j], op.Compute(Data[i].Item1.Select(d => (double)d).ToArray()), Color.Blue, label: "Estimate"));
             }
-            plt.SaveFig("data5.png");
+            plt.SaveFig("output.png");
         }
 
         private static List<Tree<string>> CalculateFitness(List<Tuple<List<float>, float>> data, List<Tree<string>> population, string[] terminals)
@@ -99,7 +100,6 @@ namespace tp1
                 {
 
                 }
-                //    break;
             }
             return population.OrderBy(ind => ind.Fitness).ToList();
         }

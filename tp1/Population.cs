@@ -72,7 +72,7 @@ namespace tp1
         {
             Random rand = new Random();
             var indexes = new HashSet<int>();
-            var best = popList[0];
+            var best = popList[popList.Count - 1];
             for (var i = 0; i < tourSize; i++)
             {
                 // selects individual at random from pop (no repetition)
@@ -86,7 +86,7 @@ namespace tp1
 
                 // checks max fitness
                 var individual = popList[index];
-                double diff = individual.Fitness.CompareTo(best.Fitness);
+                double diff = -individual.Fitness.CompareTo(best.Fitness);
                 if (diff == 0 ? -individual.NodeCount.CompareTo(best.NodeCount) > 0 : (diff > 0))
                     best = individual;
             }
@@ -110,18 +110,24 @@ namespace tp1
             Random rand = new Random();
             int crossoverAmount = (int)(MaxPop * pCrossover);
             List<Tree<T>> retorno = new List<Tree<T>>(crossoverAmount);
-            for (int i = 0; i < crossoverAmount; i++)
+            for (int i = 0; i < crossoverAmount;)
             {
                 var parent1 = selection[rand.Next(selection.Count)];
                 var parent2 = selection[rand.Next(selection.Count)];
-                var child = GetCrossover(parent1, parent2);
-                if (child.Level <= MaxDepth)
-                    retorno.Add(child);
+                var children = GetCrossover(parent1, parent2);
+                children.ForEach(child =>
+                {
+                    if (child.Level <= MaxDepth)
+					{
+                        retorno.Add(child);
+                        i++;
+                    }
+                });
             }
             return retorno;
         }
 
-        private Tree<T> GetCrossover(Tree<T> parent1, Tree<T> parent2)
+        private List<Tree<T>> GetCrossover(Tree<T> parent1, Tree<T> parent2)
         {
             Random rand = new Random();
             int commonLevel = rand.Next(Math.Min(parent1.Level, parent2.Level));
@@ -139,7 +145,11 @@ namespace tp1
             node1.Replace(node2);
             node2.Replace(temp.Root);
             child1.RecalculateCountAndDepth();
-            return child1;
+			return new List<Tree<T>>
+			{
+				child1,
+				child2
+			};
         }
 
         // Point Mutation
